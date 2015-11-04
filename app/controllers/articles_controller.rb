@@ -107,6 +107,29 @@ class ArticlesController < ApplicationController
 
   end
 
+  def search
+    if User.current
+      if params[:query]
+        articles = Article.where("title LIKE ? or content LIKE ?",
+                                 "%#{params[:query]}%",
+                                 "%#{params[:query]}%")
+      end
+    else
+      if params[:query]
+        articles = Article.where("approved = ? and (title LIKE ? or content LIKE ?)",
+                                 true,
+                                 "%#{params[:query]}%",
+                                 "%#{params[:query]}%")
+      end
+    end
+    @articles = articles.order("created_at desc").page(params[:page])
+    @comments = Comment.all.order("created_at desc").slice(0..4)
+    @article_all = Article.all.order("created_at desc")
+    respond_to do |format|
+      format.html { render action: "index" }
+    end
+  end
+
   private
   # Use callbacks to share common setup or constraints between actions.
   def set_article
